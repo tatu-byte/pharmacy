@@ -134,17 +134,45 @@ the developer laptop before submission; record CPU/RAM and Docker resource limit
 
 ## 7. Dependency reproducibility
 
-**Chosen:** Pin direct Python versions and direct Angular/toolchain versions;
-commit npm's resolved transitive lockfile and use `npm ci` in Docker. Node 22.18
-matches the Angular 20.3 toolchain range. Compose uses PostgreSQL 17. Alpine
-image patch tags and Python transitive dependencies can still receive updates.
+**Chosen:** Pin resolved Python versions and direct Angular/toolchain versions;
+commit npm's resolved transitive lockfile and use `npm ci` in Docker. Node 22 matches the Angular 20.3 toolchain range. Compose uses PostgreSQL 17.
+Image tags can still receive updates; Python transitives are now pinned too.
 
 **Alternatives/cost:** Image digests and a fully hashed Python lock provide
 stronger reproducibility but require an update process and a verified target
 platform. They remain a limitation of this small assessment, not a guarantee
-of bit-identical builds. Build-tool deprecation warnings were observed during
-npm install; no dependency security audit was performed.
+of bit-identical builds. Dependency audits were performed during the security review; both resolved
+dependency sets report zero known vulnerabilities at that point. This is not a
+guarantee against unknown vulnerabilities or vulnerable base-image packages.
 
 References consulted:
 - https://www.postgresql.org/docs/17/explicit-locking.html
 - https://angular.dev/reference/versions
+
+
+## 8. Local security boundary and resilient browser retries
+
+**Chosen:** Keep authentication out of scope, as the brief explicitly requests,
+but expose only loopback ports. Enforce Host/Origin/content-type and streamed
+body bounds before parsing; cap database waits. Give the API a separate database
+role with only the grants needed by the API, including UPDATE on the medicine
+name column solely because PostgreSQL row-locking SELECTs require an UPDATE
+privilege. Owner credentials stay in a separate one-shot service. Add composite
+rule/medicine referential integrity in reversible migration 003.
+
+Pending browser requests save their exact payload/key before sending. A lost
+response, navigation or refresh must not silently create a fresh key. Editing
+is disabled while an outcome is unknown; a confirmed success requires an
+explicit new dispense. Storage failure prevents a request being sent. Supported
+API dates are UTC years 0002 through 9998 to keep Python boundary arithmetic
+representable. The browser converts local times with the named timezone,
+including historical offset changes, and rejects ambiguous local timestamps.
+
+**Alternatives/cost:** Full authentication or deployment infrastructure would
+expand beyond this assessment. These controls do not make the app a public
+service. Tab storage survives refresh but not deliberate clearing/tab loss;
+real-world recovery needs a durable authenticated client workflow. Boundary
+failures are not logged as dispense attempts; business/input rejections are.
+Audit payloads PostgreSQL cannot represent are encoded losslessly as base64 JSON.
+The attempt log retains idempotent outcomes permanently, with no unrequested
+expiry. See SECURITY_REVIEW.md for remaining operational limits.

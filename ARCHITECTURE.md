@@ -4,8 +4,8 @@ The browser loads a standalone Angular application from Nginx. Nginx proxies
 `/api/v1` to FastAPI; this keeps browser requests same-origin. Four routed views
 provide catalogue search, medicine/rule history, dispense capture and patient
 ledger. Lists use typed API responses, cancel stale requests and reset cursors
-when filters change. The capture form retains its idempotency key for retries
-and creates a new one when its payload changes.
+when filters change. The capture form persists pending payloads/keys in browser tab storage, restores
+them after refresh and prevents edits until an uncertain result is resolved.
 
 FastAPI handles HTTP validation and pagination in `backend/app/main.py`.
 `schemas.py` defines input contracts. `domain.py` contains pure time-boundary
@@ -30,10 +30,12 @@ observe half a supersede operation. Accepted dispenses reference their rule and
 snapshot its rolling limit. A rule change may not rewrite an accepted event's
 historical interval.
 
-Alembic migrations run on API startup. A second migration transforms existing
+A one-shot owner process runs Alembic before API startup and grants a separate
+restricted runtime role. Only loopback HTTP ports are published. ASGI guards
+bound JSON work and reject cross-site requests; both API and web run without root. A second migration transforms existing
 text rejection reasons to JSONB and supports a semantic round trip on downgrade.
 Synthetic seeding uses the same dispense service as the API. Integration tests
-run against a separate real PostgreSQL database, including observed overlapping
+run against a separate real PostgreSQL database when run, including observed overlapping
 lock waits, exclusion constraints and populated migration round trips.
 
 Scope is deliberately small: no authentication, cloud deployment, CI, clinical
