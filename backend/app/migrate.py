@@ -39,6 +39,9 @@ def main():
                         "REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM pharmacy_app"
                     )
                 )
+                setup.execute(
+                    text("REVOKE UPDATE (is_active) ON medicines FROM pharmacy_app")
+                )
                 setup.execute(text("GRANT USAGE ON SCHEMA public TO pharmacy_app"))
                 setup.execute(
                     text("REVOKE ALL ON ALL TABLES IN SCHEMA public FROM pharmacy_app")

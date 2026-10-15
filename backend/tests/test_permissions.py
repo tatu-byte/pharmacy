@@ -12,6 +12,10 @@ def test_runtime_role_can_serve_but_cannot_rewrite_dispenses(database, monkeypat
     from app.schemas import RuleInput
 
     migrate_and_grant()
+    # Re-running setup removes an accidental previous activity-column grant.
+    with database.begin() as conn:
+        conn.execute(text("GRANT UPDATE (is_active) ON medicines TO pharmacy_app"))
+    migrate_and_grant()
     limited = create_engine(
         database.url.set(username="pharmacy_app", password="local-app-only"),
         connect_args={"options": "-c timezone=UTC"},

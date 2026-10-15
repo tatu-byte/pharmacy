@@ -70,7 +70,10 @@ class RequestGuards:
                         (b"cache-control", b"no-store"),
                         (b"referrer-policy", b"no-referrer"),
                         (b"x-frame-options", b"DENY"),
-                        (b"content-security-policy", b"frame-ancestors 'none'; base-uri 'self'; object-src 'none'"),
+                        (
+                            b"content-security-policy",
+                            b"frame-ancestors 'none'; base-uri 'self'; object-src 'none'",
+                        ),
                     ],
                 }
             await send(message)

@@ -102,3 +102,18 @@ def test_dispense_cannot_reference_another_medicines_rule(database):
 def test_infinite_rule_period_rejected(database):
     with pytest.raises(IntegrityError), database.begin() as conn:
         conn.execute(text("UPDATE formulary_rules SET effective_from='-infinity'"))
+
+
+def test_rule_cursor_handles_local_start_in_previous_utc_year(client):
+    assert (
+        client.post("/api/v1/medicines/MED/rules", json=rule("0002-01-01")).status_code
+        == 201
+    )
+    first = client.get("/api/v1/medicines/MED/rules?limit=1").json()
+    assert first["next_cursor"]
+    second = client.get(
+        "/api/v1/medicines/MED/rules",
+        params={"limit": 1, "cursor": first["next_cursor"]},
+    )
+    assert second.status_code == 200
+    assert len(second.json()["data"]) == 1

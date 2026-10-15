@@ -205,12 +205,14 @@ def rules(
 ):
     after = cursor_decode(cursor, "rules", [code])
     try:
-        after = (
-            business_timestamp(datetime.fromisoformat(after))
-            if after is not None
-            else None
-        )
-    except (ValueError, TypeError):
+        after = datetime.fromisoformat(after) if after is not None else None
+        if after is not None:
+            if after.tzinfo is None or after.utcoffset() is None:
+                raise ValueError()
+            # A local year-0002 rule start may be in UTC year 0001. Cursor
+            # timestamps only need to be representable, not safe for window arithmetic.
+            after = after.astimezone(timezone.utc)
+    except (ValueError, TypeError, OverflowError):
         raise APIError(422, "invalid_cursor", "cursor", "Invalid rule cursor") from None
     with engine.connect() as conn:
         require_medicine(conn, code)
