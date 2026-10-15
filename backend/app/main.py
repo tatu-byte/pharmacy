@@ -10,7 +10,7 @@ from starlette.concurrency import run_in_threadpool
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from app.db import engine, one, many
 from app.domain import midnight, reason
-from app.schemas import RuleInput
+from app.schemas import RuleInput, DispenseInput
 from app.service import dispense, error_body, validation_reasons
 
 app = FastAPI(title='Community Pharmacy', version='1.0.0')
@@ -154,10 +154,11 @@ def supersede(code: str, body: RuleInput):
     return {'data': dict(row)}
 
 
-@app.post(PREFIX + '/dispenses')
+@app.post(PREFIX + '/dispenses', openapi_extra={'requestBody': {'required': True,
+    'content': {'application/json': {'schema': DispenseInput.model_json_schema()}}}})
 async def create_dispense(request: Request):
     try:
-        raw = await request.json()
+        raw = json.loads(await request.body(), parse_constant=lambda _: (_ for _ in ()).throw(ValueError('Invalid JSON number')))
     except (ValueError, UnicodeDecodeError):
         raw = None  # Malformed JSON is also recorded as a rejected attempt.
     status, body = await run_in_threadpool(dispense, raw)

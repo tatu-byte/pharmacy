@@ -2,7 +2,7 @@ import { Component, DestroyRef, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { switchMap, Subscription } from 'rxjs';
+import { switchMap, Subscription, catchError, EMPTY } from 'rxjs';
 import { Api, Medicine, Rule, Page, violations } from './api';
 @Component({standalone:true,imports:[DatePipe,RouterLink],template:`
 @if(error){<p role="alert">{{error}}</p>}
@@ -22,7 +22,7 @@ export class Detail {
   medicine?:Medicine; rules:Rule[]=[]; next:string|null=null; error=''; loading=false; code='';
   constructor(){this.route.paramMap.pipe(switchMap(params=>{
     this.request?.unsubscribe(); this.code=params.get('code')!; this.rules=[];this.next=null;this.medicine=undefined;this.error='';
-    return this.api.get<{data:Medicine}>('/medicines/'+encodeURIComponent(this.code));
+    return this.api.get<{data:Medicine}>('/medicines/'+encodeURIComponent(this.code)).pipe(catchError(e=>{this.error=violations(e).map(v=>v.message).join(' ');return EMPTY;}));
   }),takeUntilDestroyed(this.destroy)).subscribe({next:p=>{this.medicine=p.data;this.loadRules(null);},error:e=>this.error=violations(e).map(v=>v.message).join(' ')});}
   loadRules(cursor:string|null){this.loading=true;this.error='';this.request=this.api.get<Page<Rule>>('/medicines/'+encodeURIComponent(this.code)+'/rules',{cursor}).pipe(takeUntilDestroyed(this.destroy)).subscribe({
     next:p=>{this.rules=[...this.rules,...p.data];this.next=p.next_cursor;this.loading=false;},error:e=>{this.error=violations(e).map(v=>v.message).join(' ');this.loading=false;}

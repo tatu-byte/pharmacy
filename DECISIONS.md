@@ -131,3 +131,20 @@ then measures 200 HTTP first-page requests per case using nearest-rank p95.
 It fails at p95 >= 300ms. No PostgreSQL or Docker exists in the build environment,
 so no measured latency or index-use claim is made. Run and retain the report on
 the developer laptop before submission; record CPU/RAM and Docker resource limits.
+
+## 7. Dependency reproducibility
+
+**Chosen:** Pin direct Python versions and direct Angular/toolchain versions;
+commit npm's resolved transitive lockfile and use `npm ci` in Docker. Node 22.18
+matches the Angular 20.3 toolchain range. Compose uses PostgreSQL 17. Alpine
+image patch tags and Python transitive dependencies can still receive updates.
+
+**Alternatives/cost:** Image digests and a fully hashed Python lock provide
+stronger reproducibility but require an update process and a verified target
+platform. They remain a limitation of this small assessment, not a guarantee
+of bit-identical builds. Build-tool deprecation warnings were observed during
+npm install; no dependency security audit was performed.
+
+References consulted:
+- https://www.postgresql.org/docs/17/explicit-locking.html
+- https://angular.dev/reference/versions
