@@ -11,13 +11,24 @@ services:
       interval: 2s
       timeout: 3s
       retries: 30
+  migrate:
+    build: ./backend
+    command: ["python", "-m", "app.migrate"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://pharmacy:pharmacy@db/pharmacy
+    depends_on:
+      db: {condition: service_healthy}
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
   api:
     build: ./backend
     environment:
-      DATABASE_URL: postgresql+psycopg://pharmacy:pharmacy@db/pharmacy
-    ports: ["8000:8000"]
+      DATABASE_URL: postgresql+psycopg://pharmacy_app:local-app-only@db/pharmacy
+    ports: ["127.0.0.1:8000:8000"]
     depends_on:
-      db: {condition: service_healthy}
+      migrate: {condition: service_completed_successfully}
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 3s
@@ -25,8 +36,17 @@ services:
       retries: 30
   web:
     build: ./frontend
-    ports: ["8080:80"]
+    ports: ["127.0.0.1:8080:8080"]
     depends_on:
       api: {condition: service_healthy}
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+  browser-tests:
+    build:
+      context: ./frontend
+      target: browser-tests
+    profiles: [tests]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
 volumes:
   pgdata:

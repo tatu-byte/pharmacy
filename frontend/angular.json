@@ -1,10 +1,48 @@
 {
-  "$schema": "./node_modules/@angular/cli/lib/config/schema.json", "version": 1,
-  "projects": {"pharmacy": {"projectType": "application", "root": "", "sourceRoot": "src",
-    "architect": {"build": {"builder": "@angular/build:application", "options": {
-      "outputPath": "dist/pharmacy", "index": "src/index.html", "browser": "src/main.ts",
-      "polyfills": ["zone.js"], "tsConfig": "tsconfig.json", "styles": ["src/styles.css"]
-    }, "configurations": {"production": {"optimization": true, "outputHashing": "all"}}, "defaultConfiguration": "production"},
-    "serve": {"builder": "@angular/build:dev-server", "options": {"buildTarget": "pharmacy:build"}}}
-  }}
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "projects": {
+    "pharmacy": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": "src",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "outputPath": "dist/pharmacy",
+            "index": "src/index.html",
+            "browser": "src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
+            "tsConfig": "tsconfig.json",
+            "styles": [
+              "src/styles.css"
+            ]
+          },
+          "configurations": {
+            "production": {
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": false
+              },
+              "outputHashing": "all"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "options": {
+            "buildTarget": "pharmacy:build"
+          }
+        }
+      }
+    }
+  }
 }
