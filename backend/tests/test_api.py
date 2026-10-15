@@ -84,7 +84,7 @@ def test_other_patient_and_medicine_are_independent(client,database):
     with database.begin() as conn:
         conn.execute(text("INSERT INTO medicines VALUES ('OTHER','Other','tablet',1,'mg',true)"))
         conn.execute(text("""INSERT INTO formulary_rules(medicine_code,effective_from,max_quantity_per_dispense,max_quantity_per_30_days,requires_authorisation)
-            VALUES ('OTHER','2020-01-01Z',10,10,false)"""))
+            VALUES ('OTHER','2020-01-01T00:00:00Z',10,10,false)"""))
     assert client.post('/api/v1/dispenses',json=payload(idempotency_key='three',medicine_code='OTHER')).status_code==201
 
 

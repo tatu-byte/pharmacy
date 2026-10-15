@@ -41,6 +41,11 @@ async def http_error(_, exc):
     return JSONResponse(error_body([reason('http_error', '', str(exc.detail))]), status_code=exc.status_code)
 
 
+@app.exception_handler(IntegrityError)
+async def integrity_error(_, exc):
+    return JSONResponse(error_body([reason('constraint_conflict', '', 'Request conflicts with a database constraint')]), status_code=409)
+
+
 @app.exception_handler(SQLAlchemyError)
 async def database_error(_, exc):
     # Never expose SQL, connection credentials or patient references.
@@ -90,7 +95,7 @@ def medicines(q: str = Query('', max_length=100), limit: int = Query(25, ge=1, l
     escaped = q.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
     with engine.connect() as conn:
         rows = many(conn, '''SELECT * FROM medicines WHERE (name ILIKE :q OR code ILIKE :q)
-            AND (:after IS NULL OR code > :after) ORDER BY code LIMIT :limit''',
+            AND (CAST(:after AS text) IS NULL OR code > :after) ORDER BY code LIMIT :limit''',
             q=f'%{escaped}%', after=after, limit=limit+1)
     return page(rows, limit, 'medicines', [q], lambda r: r['code'])
 
