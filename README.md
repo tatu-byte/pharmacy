@@ -7,12 +7,11 @@ docker compose up --build
 ```
 
 Open http://localhost:8080. API documentation: http://localhost:8000/docs.
-Only loopback ports are published. PostgreSQL starts first; a one-shot migration
-service applies migrations and grants the serving API its database permissions.
-The initial catalogue is empty. Run the seed command below to populate it.
+Migrations apply automatically before the API starts. The initial catalogue is
+empty. Run the seed command below to populate it.
 
 Stop with `docker compose down`. Data stays in the named volume. After pulling
-changes, rerun `docker compose up --build`; migrations apply automatically.
+changes, rerun `docker compose up --build`.
 
 # Seed
 
@@ -49,20 +48,4 @@ Run a focused database test:
 
 ```sh
 docker compose run --rm migrate python run_tests.py tests/test_concurrency.py
-```
-
-Run the first-page latency benchmark after seeding. This writes a JSON report
-with HTTP timings and EXPLAIN plans to the current directory:
-
-```sh
-docker compose run --rm -v "$PWD:/reports" migrate python -m app.benchmark --base-url http://api:8000 --output /reports/pharmacy-benchmark.json
-```
-
-The command fails if any measured p95 is at least 300ms. For an HTTP measurement
-through Nginx, use `--base-url http://web:8080` instead.
-
-Verify the production Angular build:
-
-```sh
-docker compose build web
 ```

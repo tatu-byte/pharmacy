@@ -1,9 +1,9 @@
 # Bug and security review - 15 October 2026
 
-This review covers the generated assessment repository: API inputs, transactions,
+This review covers the assessment repository: API inputs, transactions,
 rule/window logic, migrations, database privileges, browser state, containers and
 resolved Python/npm dependencies. It is a bounded review, not proof that the
-system has no defects. Authentication remains excluded by the candidate brief;
+system has no defects. Authentication remains excluded by the brief;
 the supplied configuration is a local synthetic-data assessment, not a public
 pharmacy service.
 
@@ -12,16 +12,16 @@ pharmacy service.
 | Issue | Correction | Verification |
 | --- | --- | --- |
 | Known vulnerable dependencies | Updated Angular framework/compiler to 20.3.34 and CLI/build to 20.3.40; refreshed Python dependencies; committed both resolved dependency sets. | npm audit: 25 flagged packages before, zero after. pip-audit: two flagged packages before, zero after. Full before/after reports in `audit/`. Scanner findings include transitive/build-only and unused feature paths; these counts do not claim every advisory was exploitable here. |
-| Unauthenticated demo published on all network interfaces | Both published ports bind 127.0.0.1; database remains unexposed. No public deployment is supplied. | Compose configuration reviewed; Docker runtime still unverified. |
+| Unauthenticated demo published on all network interfaces | Both published ports bind 127.0.0.1; database remains unexposed. No public deployment is supplied. | Compose configuration reviewed; stack started and served on loopback ports. |
 | Browser cross-site writes and DNS rebinding | Enforce Host and Origin allow-lists, reject cross-site fetches, require JSON content type, reject compressed bodies. | Request-boundary regressions pass. |
 | Unbounded JSON buffering / slow bodies | Count streamed bytes before parsing, 32 KiB limit including absent/false Content-Length; ten-second body deadline; Nginx has matching limits. | Streaming limit regression passes; Nginx configuration reviewed. |
 | Malformed data causing 500/503 instead of rejection | Reject non-finite numbers, duplicate JSON keys and deep nesting; bound date arithmetic, reject implicit numeric dates and validate cursor shape, integer range and timestamps. | Parameterised security tests pass. |
-| NUL/unpaired surrogates break PostgreSQL text or JSONB logging | Validate input strings and query parameters; preserve invalid raw payloads in a lossless base64-JSON audit envelope; sanitise error-field display. | Pure input/audit tests pass; actual rejected-attempt persistence test awaits PostgreSQL. |
-| Runtime API used the database superuser | Separate one-shot owner/migration service and restricted serving role. API cannot delete attempts, rewrite accepted dispenses, change activity flags or run DDL. | Grant statements reviewed; runtime permission regression added, not executed here. |
-| Workers could wait indefinitely for database locks | Connect, pool, statement, lock and idle-transaction timeouts. Retry remains idempotent after uncertain failures. | Configuration reviewed; contention behaviour awaits PostgreSQL. |
-| Broad container permissions and default caching/logging | Non-root API/web processes, dropped capabilities, no-new-privileges, no API access logs containing query references, no-store and defensive browser headers. Nginx rate-limits writes. | Browser tests run under the intended CSP; container/Nginx runtime remains unverified. |
-| Rule/dispense references could name different medicines | Reversible migration 003 adds composite referential integrity and rejects non-finite database timestamps. | PostgreSQL grammar parsing passes; constraints/downgrade tests await PostgreSQL. |
-| Backdated validation materialised every affected row | Existence query stops at the first later-window breach, preserves the same patient/medicine lock. | SQL syntax checked; execution/performance awaits PostgreSQL. |
+| NUL/unpaired surrogates break PostgreSQL text or JSONB logging | Validate input strings and query parameters; preserve invalid raw payloads in a lossless base64-JSON audit envelope; sanitise error-field display. | Input/audit tests and the PostgreSQL rejected-attempt persistence test pass. |
+| Runtime API used the database superuser | Separate one-shot owner/migration service and restricted serving role. API cannot delete attempts, rewrite accepted dispenses, change activity flags or run DDL. | Grant statements reviewed; runtime role permission test passes against PostgreSQL. |
+| Workers could wait indefinitely for database locks | Connect, pool, statement, lock and idle-transaction timeouts. Retry remains idempotent after uncertain failures. | Configuration reviewed; concurrency tests pass against PostgreSQL. Timeout expiry itself is not forced in a test. |
+| Broad container permissions and default caching/logging | Non-root API/web processes, dropped capabilities, no-new-privileges, no API access logs containing query references, no-store and defensive browser headers. Nginx rate-limits writes. | Browser tests run under the intended CSP; API and web containers ran as configured. |
+| Rule/dispense references could name different medicines | Reversible migration 003 adds composite referential integrity and rejects non-finite database timestamps. | Cross-medicine reference, non-finite period and migration round-trip tests pass against PostgreSQL. |
+| Backdated validation materialised every affected row | Existence query stops at the first later-window breach, preserves the same patient/medicine lock. | Backdating and later-window tests pass against PostgreSQL. |
 | Refresh or navigation after a lost response discarded the idempotency key | Save the exact pending payload/key in sessionStorage before sending. Restore on return; block edits until the result is resolved; retries use identical data. | Real browser test simulates a lost response, refreshes, retries and compares both payloads/keys. |
 | Date input with seconds produced invalid timestamps | Parse local calendar input and convert using Africa/Johannesburg; reject nonexistent/ambiguous historical local times instead of guessing. | Browser conversion with seconds passes. Explicit tzdata dependency supports minimal Python images. |
 | Failed list pagination mutated cursor/history prematurely | Commit page rows/cursor/history only after successful response; retain previous rows on failure. | Catalogue and ledger failure/retry browser tests pass. |
@@ -57,9 +57,9 @@ pharmacy service.
 
 ## Evidence and remaining work
 
-See VERIFICATION.md for exact executed checks. PostgreSQL/Docker-dependent tests
-and latency measurements remain unexecuted. The included `sh scripts/test.sh`
-command runs both suites on a Docker-capable machine. A review cannot guarantee
+See VERIFICATION.md for exact executed checks, including the PostgreSQL suite,
+Docker startup and latency measurements. `sh scripts/test.sh` runs both suites.
+A review cannot guarantee
 all bugs, configuration problems or unknown vulnerabilities have been eliminated.
 
 Representative advisories checked against the package audit:

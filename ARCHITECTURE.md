@@ -35,11 +35,11 @@ restricted runtime role. Only loopback HTTP ports are published. ASGI guards
 bound JSON work and reject cross-site requests; both API and web run without root. A second migration transforms existing
 text rejection reasons to JSONB and supports a semantic round trip on downgrade.
 Synthetic seeding uses the same dispense service as the API. Integration tests
-run against a separate real PostgreSQL database when run, including observed overlapping
+run against a separate, disposable PostgreSQL database, including observed overlapping
 lock waits, exclusion constraints and populated migration round trips.
 
 Scope is deliberately small: no authentication, cloud deployment, CI, clinical
 data or theme system. Direct SQL writes are administrative operations: the
 exclusion constraint still applies, but dispense business rules require the
 service transaction. See DECISIONS.md for costs and assumptions; VERIFICATION.md
-records what was actually checked and what remains unverified.
+records what was checked, how, and what is not covered.

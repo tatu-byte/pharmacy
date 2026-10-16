@@ -125,12 +125,28 @@ paired-ledger indexes partially overlap and should be consolidated if measured
 write cost outweighs their distinct ordering/coverage benefit. PostgreSQL may
 correctly choose a sequential scan on the small 500-row catalogue.
 
-**Validation status:** Static query/index alignment was reviewed. The benchmark
-runs ANALYZE, collects EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON), warms each case,
-then measures 200 HTTP first-page requests per case using nearest-rank p95.
-It fails at p95 >= 300ms. No PostgreSQL or Docker exists in the build environment,
-so no measured latency or index-use claim is made. Run and retain the report on
-the developer laptop before submission; record CPU/RAM and Docker resource limits.
+**How it was measured:** After seeding, `app.benchmark` runs ANALYZE, warms each
+case with 20 requests, then times 200 sequential HTTP first-page requests per
+case and reports nearest-rank p95. It covers catalogue listing, name and code
+search, rule history, and the ledger unfiltered, by patient, by medicine and by
+both. It also records EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) plans and exits
+non-zero if any p95 reaches 300ms:
+
+```sh
+docker compose run --rm -T migrate python -m app.benchmark --base-url http://api:8000 > pharmacy-benchmark.json
+```
+
+Use `--base-url http://web:8080` to include the Nginx hop.
+
+**Result (16 October 2026):** Apple M3 Pro, 18 GB RAM, macOS 26.6; Docker
+Engine 29.6.1 limited to 11 CPUs and 7.75 GiB; seeded data of 500 medicines,
+2,000 rules and 2,000 dispenses. Worst p95 was 2.1ms direct to the API
+(unfiltered ledger) and 4.2ms through Nginx (rule history); every case passed.
+Plans used `rule_history`, `dispense_patient_newest` and an index-only scan of
+`dispense_window`. Catalogue search chose a sequential scan, as expected for 500
+rows; the trigram indexes matter only at larger catalogue sizes. Reports are in
+`benchmarks/`. This dataset is the brief's minimum, so the numbers show headroom,
+not behaviour at ten times the volume.
 
 ## 7. Dependency reproducibility
 

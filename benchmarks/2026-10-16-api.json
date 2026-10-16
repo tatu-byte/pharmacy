@@ -1,0 +1,389 @@
+{
+  "measured_at": "2026-10-16T05:13:54.979708+00:00",
+  "platform": "Linux-6.12.76-linuxkit-aarch64-with-glibc2.41",
+  "cpu_count": 11,
+  "samples_per_case": 200,
+  "warmup_per_case": 20,
+  "concurrency": 1,
+  "base_url": "http://api:8000",
+  "dataset": {
+    "medicines": 500,
+    "rules": 2000,
+    "dispenses": 2000,
+    "patients": 2000
+  },
+  "results": {
+    "medicines": {
+      "p50_ms": 1.1293749557808042,
+      "p95_ms": 1.685582974459976,
+      "max_ms": 9.826875000726432
+    },
+    "medicine_search": {
+      "p50_ms": 1.1899170349352062,
+      "p95_ms": 1.4500829856842756,
+      "max_ms": 1.705917005892843
+    },
+    "code_search": {
+      "p50_ms": 1.2749580200761557,
+      "p95_ms": 1.816667034290731,
+      "max_ms": 2.431791042909026
+    },
+    "rule_history": {
+      "p50_ms": 1.0982920066453516,
+      "p95_ms": 1.6329169739037752,
+      "max_ms": 2.824416966177523
+    },
+    "dispenses": {
+      "p50_ms": 1.2712919851765037,
+      "p95_ms": 2.095625037327409,
+      "max_ms": 2.5783750461414456
+    },
+    "patient_ledger": {
+      "p50_ms": 0.9022500016726553,
+      "p95_ms": 1.1436669738031924,
+      "max_ms": 1.436999998986721
+    },
+    "medicine_ledger": {
+      "p50_ms": 0.9717500070109963,
+      "p95_ms": 1.0817080037668347,
+      "max_ms": 1.2844169978052378
+    },
+    "patient_medicine_ledger": {
+      "p50_ms": 0.9453750099055469,
+      "p95_ms": 1.513416995294392,
+      "max_ms": 3.1191660091280937
+    }
+  },
+  "query_plans": {
+    "search": [
+      {
+        "Plan": {
+          "Node Type": "Limit",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 12.67,
+          "Total Cost": 12.69,
+          "Plan Rows": 10,
+          "Plan Width": 48,
+          "Actual Startup Time": 0.235,
+          "Actual Total Time": 0.236,
+          "Actual Rows": 10,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 5,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Sort",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 12.67,
+              "Total Cost": 12.69,
+              "Plan Rows": 10,
+              "Plan Width": 48,
+              "Actual Startup Time": 0.235,
+              "Actual Total Time": 0.235,
+              "Actual Rows": 10,
+              "Actual Loops": 1,
+              "Sort Key": [
+                "code"
+              ],
+              "Sort Method": "quicksort",
+              "Sort Space Used": 25,
+              "Sort Space Type": "Memory",
+              "Shared Hit Blocks": 5,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0,
+              "Plans": [
+                {
+                  "Node Type": "Seq Scan",
+                  "Parent Relationship": "Outer",
+                  "Parallel Aware": false,
+                  "Async Capable": false,
+                  "Relation Name": "medicines",
+                  "Alias": "medicines",
+                  "Startup Cost": 0.0,
+                  "Total Cost": 12.5,
+                  "Plan Rows": 10,
+                  "Plan Width": 48,
+                  "Actual Startup Time": 0.01,
+                  "Actual Total Time": 0.228,
+                  "Actual Rows": 10,
+                  "Actual Loops": 1,
+                  "Filter": "((name ~~* '%MED001%'::text) OR ((code)::text ~~* '%MED001%'::text))",
+                  "Rows Removed by Filter": 490,
+                  "Shared Hit Blocks": 5,
+                  "Shared Read Blocks": 0,
+                  "Shared Dirtied Blocks": 0,
+                  "Shared Written Blocks": 0,
+                  "Local Hit Blocks": 0,
+                  "Local Read Blocks": 0,
+                  "Local Dirtied Blocks": 0,
+                  "Local Written Blocks": 0,
+                  "Temp Read Blocks": 0,
+                  "Temp Written Blocks": 0
+                }
+              ]
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 49,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.672,
+        "Triggers": [],
+        "Execution Time": 0.248
+      }
+    ],
+    "rules": [
+      {
+        "Plan": {
+          "Node Type": "Limit",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 0.28,
+          "Total Cost": 13.6,
+          "Plan Rows": 4,
+          "Plan Width": 41,
+          "Actual Startup Time": 0.008,
+          "Actual Total Time": 0.009,
+          "Actual Rows": 4,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 3,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Index Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Scan Direction": "Forward",
+              "Index Name": "rule_history",
+              "Relation Name": "formulary_rules",
+              "Alias": "formulary_rules",
+              "Startup Cost": 0.28,
+              "Total Cost": 13.6,
+              "Plan Rows": 4,
+              "Plan Width": 41,
+              "Actual Startup Time": 0.008,
+              "Actual Total Time": 0.009,
+              "Actual Rows": 4,
+              "Actual Loops": 1,
+              "Index Cond": "((medicine_code)::text = 'MED0001'::text)",
+              "Rows Removed by Index Recheck": 0,
+              "Shared Hit Blocks": 3,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 23,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.106,
+        "Triggers": [],
+        "Execution Time": 0.016
+      }
+    ],
+    "ledger": [
+      {
+        "Plan": {
+          "Node Type": "Limit",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 0.28,
+          "Total Cost": 8.29,
+          "Plan Rows": 1,
+          "Plan Width": 91,
+          "Actual Startup Time": 0.008,
+          "Actual Total Time": 0.009,
+          "Actual Rows": 1,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 3,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Index Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Scan Direction": "Forward",
+              "Index Name": "dispense_patient_newest",
+              "Relation Name": "dispenses",
+              "Alias": "dispenses",
+              "Startup Cost": 0.28,
+              "Total Cost": 8.29,
+              "Plan Rows": 1,
+              "Plan Width": 91,
+              "Actual Startup Time": 0.008,
+              "Actual Total Time": 0.008,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Index Cond": "((patient_ref)::text = 'SYNTHETIC-00000'::text)",
+              "Rows Removed by Index Recheck": 0,
+              "Shared Hit Blocks": 3,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 41,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.142,
+        "Triggers": [],
+        "Execution Time": 0.018
+      }
+    ],
+    "window": [
+      {
+        "Plan": {
+          "Node Type": "Aggregate",
+          "Strategy": "Plain",
+          "Partial Mode": "Simple",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 4.31,
+          "Total Cost": 4.32,
+          "Plan Rows": 1,
+          "Plan Width": 8,
+          "Actual Startup Time": 0.02,
+          "Actual Total Time": 0.02,
+          "Actual Rows": 1,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 2,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Index Only Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Scan Direction": "Forward",
+              "Index Name": "dispense_window",
+              "Relation Name": "dispenses",
+              "Alias": "dispenses",
+              "Startup Cost": 0.29,
+              "Total Cost": 4.31,
+              "Plan Rows": 1,
+              "Plan Width": 4,
+              "Actual Startup Time": 0.018,
+              "Actual Total Time": 0.018,
+              "Actual Rows": 0,
+              "Actual Loops": 1,
+              "Index Cond": "((patient_ref = 'SYNTHETIC-00000'::text) AND (medicine_code = 'MED0001'::text) AND (dispensed_at >= (now() - '30 days'::interval)) AND (dispensed_at <= now()))",
+              "Rows Removed by Index Recheck": 0,
+              "Heap Fetches": 0,
+              "Shared Hit Blocks": 2,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 12,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.13,
+        "Triggers": [],
+        "Execution Time": 0.04
+      }
+    ]
+  },
+  "passed": true
+}

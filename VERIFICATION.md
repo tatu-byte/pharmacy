@@ -1,56 +1,50 @@
 # Verification record
 
-15 October 2026, after the bug/security review. This supersedes the initial
-implementation's verification record. No Docker/database execution is implied
-by browser tests or SQL grammar checks.
+16 October 2026. Everything below was run from a fresh `git clone` of the
+repository, using the commands in README.md.
 
-## Executed and passed
+## Environment
 
-- Python compilation and Ruff checks for undefined names, syntax/runtime mistakes
-  and selected bug-prone patterns (`--select E9,F,B`).
-- FastAPI import/OpenAPI generation and **65 Python domain, contract and security
-  tests**, run against the updated pinned dependencies.
-- **90 Python tests collected** without collection errors; **25 require PostgreSQL**.
-- Angular production build with strict TypeScript and template checks passed.
-- **10 browser regression tests passed** against that production bundle with
-  controlled API responses and an active Content Security Policy. Coverage:
-  local timestamp conversion including seconds; lost response + refresh + exact
-  idempotent retry; all rejection reasons; storage failure before sending;
-  blank/fractional validation; malformed error responses; failed catalogue and
-  ledger paging; rule-history retry; escaping hostile catalogue names as text.
-- More than 100 static SQL statements parsed with PostgreSQL's grammar via pglast,
-  including migrations and the revised backdating query. This checks syntax,
-  not permissions, semantics, concurrency or actual query plans.
-- `npm audit`: zero reported vulnerabilities in the resolved frontend dependency
-  set, including development dependencies.
-- `pip-audit -r backend/requirements.txt`: zero reported known vulnerabilities in
-  the resolved Python dependency set. Before/after JSON reports are in `audit/`.
+Apple M3 Pro, 18 GB RAM, macOS 26.6. Docker Engine 29.6.1 with Compose v5.3.0,
+limited to 11 CPUs and 7.75 GiB. PostgreSQL 17 (`postgres:17-alpine`).
 
-There is one upstream Starlette warning about the future removal of its httpx
-TestClient compatibility. Tests use the currently supported compatibility path;
-it did not fail and the locked versions are recorded.
+This host's Docker had used up its default network address pools on unrelated
+projects, so the runs added a local Compose override that pinned the default
+network to a free subnet. No service definition changed.
 
-## Not executed here
+## Results
 
-There is no Docker daemon or PostgreSQL server in this environment. System
-package installation was blocked by OS permissions. Therefore:
+| Check | Result |
+| --- | --- |
+| `docker compose up --build` | Database healthy, migration service exited 0 at revision 003, API healthy, web served the app and proxied `/api/v1` |
+| Seed command, run twice | 500 medicines, 2,000 rules (4 per medicine), 2,000 dispenses, 2,000 distinct patient references, 729-day span. The second run added nothing |
+| Backend suite (`run_tests.py`) | **90 passed**, including the 25 PostgreSQL integration tests: concurrency, exclusion constraint, runtime role grants, migration round trip, seed, backdating and pagination |
+| Browser suite (`browser-tests`) | **16 passed** against the production bundle |
+| First-page latency, direct to API | Worst p95 2.1ms over eight listing cases (`benchmarks/2026-10-16-api.json`) |
+| First-page latency, through Nginx | Worst p95 4.2ms over the same cases (`benchmarks/2026-10-16-nginx.json`) |
+| Views against the live API | Detail (current rule and timeline), capture and ledger used with seeded data. Search checked through the proxied API with partial name and code queries |
+| Multi-reason rejection, live | One request returned `per_dispense_limit`, `rolling_limit` and `authorisation_required` together. The attempt was logged with three reasons and no dispense row was created |
 
-- The **25 PostgreSQL integration tests** have been written and collected, but
-  **not executed**. This includes observed concurrency, constraints, role grants,
-  migration upgrades/downgrades, rejected-attempt persistence, seed repeatability,
-  backdating and pagination against real data.
-- Container startup, Nginx configuration execution, image scanning, runtime role
-  permissions and the clean-clone Docker workflow remain unverified.
-- The p95 < 300ms requirement has **not been measured**. No invented latency
-  figures or index-use claims are supplied.
-- Browser regressions use controlled API responses; they are not a live
-  browser-to-FastAPI-to-PostgreSQL end-to-end test.
+The first database run found one faulty test: the search assertion looked for
+`esti`, which the fixture name "Test medicine" does not contain. The assertion
+was corrected; the API's search behaviour was not changed.
 
-## Completion checks on a Docker-capable machine
+## Static and dependency checks (15 October 2026)
 
-1. Run `docker compose up --build`, then the seed command in README.md.
-2. Run `sh scripts/test.sh` and fix any environment/database failures it reveals.
-3. Run the benchmark and retain its JSON with CPU/RAM/OS/Docker resource details.
-4. Exercise the four UI views against the live API, including multi-reason
-   rejection and retry, then restart from a clean clone and repeat startup.
-5. Update this record and AI_USAGE.md with actual results and candidate review.
+- Ruff checks for undefined names, syntax/runtime mistakes and selected
+  bug-prone patterns (`--select E9,F,B`).
+- Strict Angular production build with template type checking.
+- Static SQL parsed with PostgreSQL's grammar via pglast.
+- `npm audit` and `pip-audit -r backend/requirements.txt`: zero known
+  vulnerabilities in the resolved dependency sets. Reports are in `audit/`.
+
+## Not covered
+
+- Browser tests use controlled API responses. The live end-to-end check above
+  was done by hand, not by an automated browser-to-database test.
+- Database timeout settings are configured but not forced to expire in a test.
+- Container images were not scanned for operating-system vulnerabilities.
+- Latency was measured at the brief's minimum dataset with one client at a
+  time. It says nothing about behaviour under concurrent load or at larger volume.
+
+See ASSESSMENT_CHECKLIST.md for the requirement-by-requirement mapping.
